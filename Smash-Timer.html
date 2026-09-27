@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smash-Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #FF6B35 0%, #D62828 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #D62828;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .burger-icon {
+            font-size: 36px;
+            animation: flip 0.6s ease-in-out infinite;
+        }
+
+        @keyframes flip {
+            0%, 100% { transform: rotateZ(0deg); }
+            50% { transform: rotateZ(10deg); }
+        }
+
+        .display {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-radius: 16px;
+            padding: 40px 24px;
+            text-align: center;
+            margin-bottom: 32px;
+            border: 3px solid #FF6B35;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        .display.warning {
+            animation: pulse 0.5s infinite;
+            border-color: #FFD60A;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255, 107, 53, 0.5); }
+            50% { box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), 0 0 30px rgba(255, 214, 10, 0.8); }
+        }
+
+        .time-value {
+            font-size: 72px;
+            font-weight: 900;
+            color: #FF6B35;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+
+        .display.warning .time-value {
+            color: #FFD60A;
+            animation: blink 0.3s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .time-label {
+            font-size: 14px;
+            color: #FFD60A;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .status {
+            font-size: 16px;
+            font-weight: 600;
+            color: #FF6B35;
+            margin-top: 12px;
+            height: 24px;
+        }
+
+        .message {
+            font-size: 18px;
+            font-weight: 700;
+            color: #FFD60A;
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(255, 214, 10, 0.1);
+            border-radius: 8px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.3;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .controls.three-cols {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid #FF6B35;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            background: #1a1a1a;
+            transition: all 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #FFD60A;
+            box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
+        }
+
+        input[type="number"]::placeholder {
+            color: #666;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8A50 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.5);
+        }
+
+        .btn-start:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #D62828 0%, #E53935 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(214, 40, 40, 0.3);
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(214, 40, 40, 0.5);
+        }
+
+        .btn-stop:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            grid-column: 1 / -1;
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #FF6B35;
+        }
+
+        .btn-reset:hover {
+            background: #FFE5D9;
+            transform: translateY(-3px);
+        }
+
+        .sound-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .sound-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #FF6B35;
+        }
+
+        .sound-toggle label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: none;
+            color: #333;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px;
+            }
+
+            .time-value {
+                font-size: 56px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .burger-icon {
+                font-size: 32px;
+            }
+
+            .controls.three-cols {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .controls.three-cols .input-group:nth-child(3) {
+                grid-column: 1 / -1;
+            }
+
+            .message {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="burger-icon">🍔</span>
+            <h1>Smash-Timer</h1>
+            <span class="burger-icon">🍔</span>
+        </div>
+
+        <div class="display" id="display">
+            <div class="time-value" id="timeDisplay">00:00</div>
+            <div class="time-label" id="phaseLabel">TIMER</div>
+            <div class="status" id="status"></div>
+            <div class="message" id="message" style="display: none;"></div>
+        </div>
+
+        <div class="controls three-cols">
+            <div class="input-group">
+                <label for="timerInput">Secondi Cottura</label>
+                <input type="number" id="timerInput" min="1" max="3600" value="180">
+            </div>
+            <div class="input-group">
+                <label for="pauseInput">Secondi Pausa</label>
+                <input type="number" id="pauseInput" min="1" max="3600" value="15">
+            </div>
+            <div class="input-group">
+                <label for="warningInput">Avviso (sec)</label>
+                <input type="number" id="warningInput" min="1" max="3600" value="10">
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-start" id="startBtn">🔥 Avvia</button>
+            <button class="btn-stop" id="stopBtn" disabled>⏹️ Ferma</button>
+            <button class="btn-reset" id="resetBtn">↻ Ripristina</button>
+        </div>
+
+        <div class="sound-toggle">
+            <input type="checkbox" id="soundToggle" checked>
+            <label for="soundToggle">🔊 Suoni accesi</label>
+        </div>
+    </div>
+
+    <script>
+        const timeDisplay = document.getElementById('timeDisplay');
+        const phaseLabel = document.getElementById('phaseLabel');
+        const status = document.getElementById('status');
+        const message = document.getElementById('message');
+        const display = document.getElementById('display');
+        const timerInput = document.getElementById('timerInput');
+        const pauseInput = document.getElementById('pauseInput');
+        const warningInput = document.getElementById('warningInput');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const soundToggle = document.getElementById('soundToggle');
+
+        let totalTimerSeconds = 180;
+        let totalPauseSeconds = 15;
+        let warningThreshold = 10;
+        let remainingSeconds = 180;
+        let isRunning = false;
+        let isTimerPhase = true;
+        let intervalId = null;
+        let hasPlayedStartSound = false;
+        let warningShown = false;
+
+        function playBellSound() {
+            if (!soundToggle.checked) return;
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const startTime = audioContext.currentTime;
+
+            // Suono di campanella - serie di toni decrescenti
+            const bellFreqs = [800, 600, 400];
+            bellFreqs.forEach((freq, i) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime + i * 0.1);
+                gain.gain.setValueAtTime(0.3, startTime + i * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + i * 0.1 + 0.3);
+                osc.start(startTime + i * 0.1);
+                osc.stop(startTime + i * 0.1 + 0.3);
+            });
+        }
+
+        function playBip() {
+            if (!soundToggle.checked) return;
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+
+            oscillator.frequency.value = 1000;
+            oscillator.type = 'sine';
+
+            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        function playEndSound() {
+            if (!soundToggle.checked) return;
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const startTime = audioContext.currentTime;
+
+            // Tre toni in salita finale
+            const frequencies = [800, 1000, 1200];
+            frequencies.forEach((freq, i) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.3, startTime + i * 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + i * 0.15 + 0.25);
+                osc.start(startTime + i * 0.15);
+                osc.stop(startTime + i * 0.15 + 0.25);
+            });
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            timeDisplay.textContent = formatTime(remainingSeconds);
+
+            // Effetto visivo per gli ultimi X secondi (configurabili)
+            if (isTimerPhase && remainingSeconds > 0 && remainingSeconds <= warningThreshold) {
+                display.classList.add('warning');
+            } else {
+                display.classList.remove('warning');
+            }
+        }
+
+        function showMessage(text) {
+            message.textContent = text;
+            message.style.display = 'flex';
+        }
+
+        function hideMessage() {
+            message.style.display = 'none';
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+
+            totalTimerSeconds = parseInt(timerInput.value) || 180;
+            totalPauseSeconds = parseInt(pauseInput.value) || 15;
+            warningThreshold = parseInt(warningInput.value) || 10;
+
+            if (remainingSeconds === (isTimerPhase ? totalTimerSeconds : totalPauseSeconds)) {
+                remainingSeconds--;
+            }
+
+            isRunning = true;
+            hasPlayedStartSound = false;
+            warningShown = false;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            timerInput.disabled = true;
+            pauseInput.disabled = true;
+            warningInput.disabled = true;
+
+            status.textContent = isTimerPhase ? '🔥 Cottura in corso...' : '⏸️ Pausa...';
+
+            intervalId = setInterval(() => {
+                // Suono di partenza (campanella, solo una volta all'inizio)
+                if (!hasPlayedStartSound && remainingSeconds === (isTimerPhase ? totalTimerSeconds - 1 : totalPauseSeconds - 1)) {
+                    playBellSound();
+                    hasPlayedStartSound = true;
+                }
+
+                remainingSeconds--;
+
+                // Avviso negli ultimi X secondi della fase timer
+                if (isTimerPhase && remainingSeconds > 0 && remainingSeconds <= warningThreshold) {
+                    if (!warningShown) {
+                        showMessage('🔔 PREPARA IL PROSSIMO HAMBURGER');
+                        warningShown = true;
+                    }
+                    playBip();
+                }
+
+                if (remainingSeconds < 0) {
+                    if (isTimerPhase) {
+                        playEndSound();
+                        isTimerPhase = false;
+                        remainingSeconds = totalPauseSeconds;
+                        phaseLabel.textContent = 'PAUSA';
+                        status.textContent = '⏸️ Pausa...';
+                        showMessage('🍔 GIRA L\'HAMBURGER!\n📍 POSIZIONA IL PROSSIMO HAMBURGER!');
+                        warningShown = false;
+                        hasPlayedStartSound = false;
+                    } else {
+                        playBellSound();
+                        isTimerPhase = true;
+                        remainingSeconds = totalTimerSeconds;
+                        phaseLabel.textContent = 'TIMER';
+                        status.textContent = '🔥 Cottura in corso...';
+                        hideMessage();
+                        warningShown = false;
+                        hasPlayedStartSound = true;
+                    }
+                }
+
+                updateDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            clearInterval(intervalId);
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            timerInput.disabled = false;
+            pauseInput.disabled = false;
+            warningInput.disabled = false;
+            status.textContent = '';
+            hideMessage();
+            display.classList.remove('warning');
+        }
+
+        function resetTimer() {
+            stopTimer();
+            isTimerPhase = true;
+            phaseLabel.textContent = 'TIMER';
+            warningThreshold = parseInt(warningInput.value) || 10;
+            remainingSeconds = parseInt(timerInput.value) || 180;
+            updateDisplay();
+            status.textContent = '';
+            warningShown = false;
+        }
+
+        startBtn.addEventListener('click', startTimer);
+        stopBtn.addEventListener('click', stopTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        timerInput.addEventListener('change', () => {
+            if (!isRunning) {
+                remainingSeconds = parseInt(timerInput.value) || 180;
+                updateDisplay();
+            }
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>
